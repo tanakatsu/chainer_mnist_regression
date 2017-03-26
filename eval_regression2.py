@@ -6,6 +6,7 @@ import chainer
 import chainer.functions as F
 import chainer.links as L
 from chainer import serializers
+import numpy as np
 
 
 # Network definition
@@ -56,8 +57,12 @@ def main():
     for i in range(10):
         img = train[i][0]
         label = train[i][1]
+        # img = test[i][0]
+        # label = test[i][1]
+
         y = model.predictor(img.reshape(-1, 784))
-        print(label, y.data[0])
+        loss = F.mean_squared_error(y, chainer.Variable(np.array([[label]], dtype=np.float32)))
+        print(label, y.data[0], loss.data)
 
 if __name__ == '__main__':
     main()
