@@ -12,12 +12,12 @@ import numpy as np
 # Network definition
 class MLP(chainer.Chain):
 
-    def __init__(self, train=True):
+    def __init__(self, n_units, train=True):
         super(MLP, self).__init__(
             conv1=L.Convolution2D(1, 20, 5),
             conv2=L.Convolution2D(20, 50, 5),
-            l1=L.Linear(800, 500),  # 50 * 4 * 4 = 800
-            l2=L.Linear(500, 1),
+            l1=L.Linear(800, n_units),  # 50 * 4 * 4 = 800
+            l2=L.Linear(n_units, 1),
         )
         self.train = train
 
@@ -43,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description='Chainer example: MNIST')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID (negative value indicates CPU)')
-    parser.add_argument('--unit', '-u', type=int, default=1000,
+    parser.add_argument('--unit', '-u', type=int, default=500,
                         help='Number of units')
     parser.add_argument('--model', '-m', default='result/model_iter_12000',
                         help='Trained model')
@@ -55,8 +55,8 @@ def main():
     # Set up a neural network to train
     # Classifier reports softmax cross entropy loss and accuracy at every
     # iteration, which will be used by the PrintReport extension below.
-    model = L.Classifier(MLP(args.unit))
-    model.train = False
+    model = L.Classifier(MLP(args.unit, train=False))
+
     if args.gpu >= 0:
         chainer.cuda.get_device(args.gpu).use()  # Make a specified GPU current
         model.to_gpu()  # Copy the model to the GPU
@@ -76,7 +76,8 @@ def main():
 
         y = model.predictor(img.reshape(-1, 1, 28, 28))
         loss = F.mean_squared_error(y, chainer.Variable(np.array([[label]], dtype=np.float32)))
-        print(label, y.data[0], loss.data)
+        d = abs(y.data[0][0] - label)
+        print(label, y.data[0], d, loss.data)
 
 if __name__ == '__main__':
     main()
